@@ -71,6 +71,17 @@ src/test/java/io/pqa/framework/
 
 The framework already keeps interfaces ready for these: `ScenarioResult` exports JSON, `MockGateway` supports fault injection, and tests are decoupled from the gateway.
 
+## Similar projects
+
+| Project | Layer | What it does | How we differ |
+|---|---|---|---|
+| [stripe/stripe-mock](https://github.com/stripe/stripe-mock) | API mock server | Mimics the Stripe API shape for SDK tests | No scenario checklist, assertions, or report output |
+| [ashfromsky/acquiremock](https://github.com/ashfromsky/acquiremock) | Mock gateway component | Full-featured mock payment gateway with webhooks & OTP | A gateway component only — no QA scenario suite or report |
+| [rasuvaeff/payments-testing](https://packagist.org/packages/rasuvaeff/payments-testing) | Contract tests | Fake gateways + contract assertions for gateway adapters | Focused on adapter contracts, not end-to-end payment QA scenarios |
+| **payment-qa-framework (this repo)** | **QA scenario layer** | 42 business scenarios + mock gateway + assertions + report + CI | The combined "scenario checklist as runnable deliverable" |
+
+None of the above packages the payment QA checklist (main flows / failure & retry / subscriptions / webhooks / auth-capture / chargebacks / edge cases) as runnable tests with a report artifact.
+
 ## License
 
 [MIT](LICENSE) © 2026 pqa-labs
