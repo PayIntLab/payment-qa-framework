@@ -16,3 +16,12 @@ jobs:
           java-version: '17'
       - name: Run payment QA scenario tests
         run: mvn -B test
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: payment-qa-reports
+          path: |
+            target/surefire-reports
+            target/payment-qa-report.md
+            target/payment-qa-report.json
