@@ -1,94 +1,94 @@
-# 出海产品支付 QA 测试场景清单（44 项：42 可跑 + 2 预留）
+# Payment QA Test Checklist for Cross-border Products (44 items: 42 runnable + 2 reserved)
 
-> 对应 `payment-qa-framework` 中的可运行测试。所有测试在模拟网关（Stripe 风格）上执行，不接触真实卡和真实环境。
+> Mapped to the runnable tests in `payment-qa-framework`. All tests run against the built-in mock gateway (Stripe-style) — no real cards or real environments.
 
-## A 组：支付主流程（成功路径）
+## Group A: Payment main flows (happy path)
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| A1 | 首次支付成功（新用户） | 订单已支付、金额/币种正确、有交易流水号 |
-| A2 | 已登录用户再次购买 | 两次订单独立、不重复扣款 |
-| A3 | 取消 / 放弃支付 | 无扣款、订单保持未支付、可再次发起 |
-| A4 | 多币种 / 汇率 | 结算币种与扣款一致、汇率正确 |
-| A5 | 优惠券 / 折扣 | 金额计算正确、过期/用尽券不可用 |
+| A1 | First payment (new user) | Order paid, amount/currency correct, transaction ID recorded |
+| A2 | Returning user buys again | Two independent orders, no double charge |
+| A3 | Cancel / abandon payment | No charge, order stays unpaid, can retry |
+| A4 | Multi-currency / FX | Settlement currency matches charge, FX correct |
+| A5 | Coupon / discount | Amount math correct; expired/used coupons rejected |
 
-## B 组：支付失败与重试
+## Group B: Payment failures & retries
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| B6 | 卡片被拒 | 订单保持未支付、提示正确、可重试成功 |
-| B7 | 余额不足 | 失败原因明确、订单未支付 |
-| B8 | 3DS 验证 | 成功/拒绝两态正确 |
-| B9 | 重复提交 / 双击 | 幂等键生效、只扣一次款 |
-| B10 | 金额为 0 / 免费订单 | 跳过支付、订单直接成功 |
+| B6 | Card declined | Order stays unpaid, clear message, retry succeeds |
+| B7 | Insufficient funds | Failure reason explicit, order unpaid |
+| B8 | 3DS verification | Approve / reject both handled correctly |
+| B9 | Double submit / idempotency key | Only one charge, same result on replay |
+| B10 | Zero amount / free order | Payment skipped, order succeeds |
 
-## C 组：订阅
+## Group C: Subscriptions
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| C11 | 创建订阅 | 状态 active、周期结束时间正确 |
-| C12 | 周期续费 | 成功顺延；失败转 past_due |
-| C13 | 取消订阅 | 周期结束后取消、不立即停用 |
-| C14 | 升降级 / 按比例计费 | 新套餐生效、按比例扣费正确 |
-| C15 | 免费试用转付费 | 试用结束自动转成功 |
+| C11 | Create subscription | Status active, period_end correct |
+| C12 | Periodic renewal | Success extends; failure moves to past_due |
+| C13 | Cancel subscription | Cancel at period end, not immediately |
+| C14 | Upgrade / downgrade proration | New plan applied, prorated charge correct |
+| C15 | Trial to paid | Trial converts to active automatically |
 
-## D 组：Webhook 与对账
+## Group D: Webhooks & reconciliation
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| D16 | Webhook 幂等（重放同一事件） | 同一事件只产生一次副作用 |
-| D17 | Webhook 签名校验 | 伪造/缺失/空签名全部拒绝 |
-| D18 | 掉单恢复 | 回调丢失后对账任务能补单 |
-| D19 | 退款（全额） | 全额退款后订单状态正确 |
-| D20 | 对账一致性 | 平台账单与本地订单一致 |
+| D16 | Webhook idempotency (replay) | Same event produces side effects once |
+| D17 | Webhook signature verification | Forged / missing / empty signatures all rejected |
+| D18 | Dropped callback recovery | Reconciliation backfills the order |
+| D19 | Refund (full) | Order state updates to refunded |
+| D20 | Statement consistency | Platform statement matches local orders |
 
-## E 组：授权-扣款（Auth & Capture）
+## Group E: Auth & Capture
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| E1 | 授权不扣款 | capture=false → requires_capture，无成功扣款 |
-| E2 | 全额捕获 | 授权 5000 → capture → succeeded，金额 5000 |
-| E3 | 部分捕获 | 分两次捕获 2000 + 3000，总额正确、剩余金额递减 |
-| E4 | 超额捕获拒绝 | 捕获 > 授权剩余 → 400，状态不变 |
-| E5 | 重复捕获拒绝 | 全额捕获后再 capture → 400 |
-| E6 | 授权撤销 / 过期 | void → canceled；expire → expired；终态后再 capture → 400 |
-| E7 | 3DS + 授权流 | 3DS 卡 + capture=false → 3DS 确认 → requires_capture → 捕获成功 |
+| E1 | Authorize only | requires_capture, no settled charge |
+| E2 | Full capture | Authorized 5000 → captured 5000, succeeded |
+| E3 | Partial capture | 2000 + 3000 captures, remaining decreases correctly |
+| E4 | Capture over authorization | 400, state unchanged |
+| E5 | Double capture | 400 after full capture |
+| E6 | Void / expire | canceled / expired; capture after terminal state → 400 |
+| E7 | 3DS + manual capture | 3DS confirm → requires_capture → capture succeeds |
 
-## F 组：拒付 / 争议（Chargeback）
+## Group F: Chargebacks / disputes
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| F1 | 平台发起拒付 | dispute 生成，charge → disputed，金额/原因正确 |
-| F2 | 部分金额争议 | charge 5000 争议 2000，金额正确 |
-| F3 | 提交证据 | evidence 后状态 → under_review |
-| F4 | 判赢 | resolve(won) → dispute_won（资金退回） |
-| F5 | 判输 | resolve(lost) → lost（资金损失） |
-| F6 | 主动认赔 | accept → lost |
-| F7 | 状态机防护 | disputed 后再 capture/refund → 400；终态后不可再改 |
+| F1 | Platform starts a dispute | Dispute created, charge → disputed, amount/reason correct |
+| F2 | Partial amount dispute | 5000 charge, 2000 disputed |
+| F3 | Submit evidence | Status → under_review |
+| F4 | Dispute won | charge → dispute_won (funds returned) |
+| F5 | Dispute lost | charge → lost (funds lost) |
+| F6 | Accept dispute | charge → lost |
+| F7 | State machine protection | Capture/refund on disputed → 400; terminal states locked |
 
-## G 组：边界与一致性
+## Group G: Edge cases & consistency
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| G1 | 字段长度边界 | 超长订单号/金额 → 4xx，无副作用 |
-| G2 | 未知事件类型 | 未知 event_type → ignored，不 500、无副作用 |
-| G3 | Webhook 乱序 | 退款先到、支付后到 → 不产生"未支付却退款"副作用 |
-| G4 | 并发 Webhook | 两个并发相同事件 → 副作用只发生一次 |
-| G5 | 畸形/超长 payload | 非 JSON → 400；超限 body → 413，服务不崩 |
-| G6 | 沙盒/生产配置一致性 | 测试模式标记、api_version、secret 配置字段齐全 |
+| G1 | Field length boundaries | Oversized order id / amount → 4xx, no side effects |
+| G2 | Unknown event types | Ignored, no 500, no side effects |
+| G3 | Out-of-order webhooks | Refund before payment → no premature side effects |
+| G4 | Concurrent webhooks | Two concurrent identical events → side effect once |
+| G5 | Malformed / oversized payloads | Invalid JSON → 400; oversized body → 413; server stays up |
+| G6 | Sandbox vs production config | Test-mode flag, api_version, secret config present |
 
-## H 组：退款细节与订阅 Dunning（H2 / H4 预留）
+## Group H: Refund details & subscription dunning (H2 / H4 reserved)
 
-| 编号 | 场景 | 关键检查点 |
+| ID | Scenario | Key checkpoints |
 |---|---|---|
-| H1 | 部分退款 + 退款竞态 | 部分退款金额正确；requires_capture 状态先退款 → 400 |
-| H2 | 钱包 / 本地支付（预留） | Apple Pay / 支付宝 / SEPA / Klarna 等适配层占位 |
-| H3 | 订阅 Dunning | 续费失败 → past_due；重试成功 → active，retry 计数正确 |
-| H4 | 提现 / 结算对账（预留） | 手续费、汇率、结汇对账适配层占位 |
+| H1 | Partial refund + refund race | Partial amount correct; refund before capture → 400 |
+| H2 | Wallets / local payment methods (reserved) | Adapter placeholder for Apple Pay / Alipay / SEPA / Klarna |
+| H3 | Subscription dunning | Failed renewal → past_due; recovery → active; retry count correct |
+| H4 | Payouts / settlement reconciliation (reserved) | Adapter placeholder for fees, FX, settlement |
 
-## 使用方式
+## Usage
 
-1. 克隆仓库，`mvn test`
-2. 接真实平台时：把 `ApiClient` 换成真实 SDK / 网关适配层，测试逻辑不变
-3. 报告输出：`target/payment-qa-report.md` / `.json`
-4. 加新场景：在对应测试类加一个 `@Test`，断言复用框架工具类
+1. Clone and run `mvn test`
+2. To wire a real platform: replace `ApiClient` with the real SDK / gateway adapter; the test logic stays
+3. Reports: `target/payment-qa-report.md` / `.json`
+4. Add a new scenario: add a `@Test` to the matching class and reuse the framework helpers

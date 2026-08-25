@@ -13,11 +13,11 @@ public final class ReportWriter {
 
     public static void writeMarkdown(List<ScenarioResult> results, Path path) throws Exception {
         long passed = results.stream().filter(ScenarioResult::passed).count();
-        StringBuilder sb = new StringBuilder("# 支付 QA 测试报告\n\n");
-        sb.append("> 场景总数：").append(results.size())
-                .append("　通过：").append(passed)
-                .append("　失败：").append(results.size() - passed).append("\n\n");
-        sb.append("| 场景 | 结果 | 说明 |\n|---|---|---|\n");
+        StringBuilder sb = new StringBuilder("# Payment QA Test Report\n\n");
+        sb.append("> Total scenarios: ").append(results.size())
+                .append("  Passed: ").append(passed)
+                .append("  Failed: ").append(results.size() - passed).append("\n\n");
+        sb.append("| Scenario | Result | Details |\n|---|---|---|\n");
         for (ScenarioResult r : results) {
             sb.append("| ").append(r.id()).append(" ").append(r.name())
                     .append(" | ").append(r.passed() ? "PASS" : "FAIL")

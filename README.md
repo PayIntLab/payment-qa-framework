@@ -1,84 +1,84 @@
 # payment-qa-framework
 
 > Payment QA automation framework for cross-border / overseas products.
-> 支付 QA 自动化框架：把"支付上线前体检"的 42 场景清单，写成可以直接跑的自动化用例。
+> Turns a 42-scenario payment test checklist into runnable automation.
 
-![CI](https://github.com/lilycyj-hub/payment-qa-framework/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/pqa-labs/payment-qa-framework/actions/workflows/ci.yml/badge.svg)
 
-## 这是什么
+## What is this?
 
-支付集成最怕的不是"测不出来"，而是"没测过"。这个框架把一份支付测试清单（主流程 / 失败重试 / 订阅 / Webhook 对账 / 授权扣款 / 拒付争议 / 边界一致性 / 退款与续费）变成可执行代码：
+Payment integrations rarely fail because "nobody can test" — they fail because "nobody tested." This framework turns a payment test checklist (main flows / failure & retry / subscriptions / webhooks & reconciliation / auth & capture / chargebacks / edge cases / refunds & dunning) into executable code:
 
-- 内置一个 **Stripe 风格的模拟支付网关**（测试卡、幂等键、3DS、订阅、授权-捕获、拒付、账单导出），本地跑、CI 跑，不依赖任何真实账号
-- 每个场景是一个独立测试方法，失败时给出明确断言和现场信息
-- 自带报告生成器（Markdown + JSON），跑完可直接作为交付文档
+- Built-in **Stripe-style mock payment gateway** (test cards, idempotency keys, 3DS, subscriptions, auth-capture, disputes, statement export) — runs locally and in CI, no real payment accounts needed
+- Each scenario is an isolated test method with clear assertions
+- Report generator outputs Markdown + JSON — ready to be handed over as a delivery artifact
 
-## 快速开始
+## Quick start
 
 ```bash
 mvn test
 ```
 
-需要 JDK 17+ 和 Maven。全部测试通过后，`target/payment-qa-report.md` 和 `target/payment-qa-report.json` 会生成示例报告。
+Requires JDK 17+ and Maven. After a green run, `target/payment-qa-report.md` and `target/payment-qa-report.json` are generated as sample reports.
 
-## 场景覆盖
+## Scenario coverage
 
-| 组 | 主题 | 数量 | 测试类 |
+| Group | Topic | # | Test class |
 |---|---|---|---|
-| A | 支付主流程（成功路径） | 5 | `A_PaymentFlowTests` |
-| B | 支付失败与重试 | 5 | `B_FailureRetryTests` |
-| C | 订阅 | 5 | `C_SubscriptionTests` |
-| D | Webhook / 对账 | 5 | `D_WebhookReconcileTests` |
-| E | 授权-扣款（Auth & Capture） | 7 | `E_AuthCaptureTests` |
-| F | 拒付 / 争议（Chargeback） | 7 | `F_ChargebackTests` |
-| G | 边界与一致性 | 6 | `G_EdgeConsistencyTests` |
-| H | 退款细节 / 订阅 Dunning | 2（另有 2 项预留） | `H_RefundDunningTests` |
+| A | Payment main flows (happy path) | 5 | `A_PaymentFlowTests` |
+| B | Payment failures & retries | 5 | `B_FailureRetryTests` |
+| C | Subscriptions | 5 | `C_SubscriptionTests` |
+| D | Webhooks / reconciliation | 5 | `D_WebhookReconcileTests` |
+| E | Auth & Capture | 7 | `E_AuthCaptureTests` |
+| F | Chargebacks / disputes | 7 | `F_ChargebackTests` |
+| G | Edge cases & consistency | 6 | `G_EdgeConsistencyTests` |
+| H | Refund details / subscription dunning | 2 (2 more reserved) | `H_RefundDunningTests` |
 
-完整清单见 [docs/payment-qa-checklist.md](docs/payment-qa-checklist.md)。
+Full checklist: [docs/payment-qa-checklist.md](docs/payment-qa-checklist.md).
 
-## 结构
+## Structure
 
 ```
 src/main/java/io/pqa/framework/
-  ApiClient.java            # HTTP 客户端（Java 17 HttpClient）
-  WebhookSigner.java        # 事件签名 / 验签（HMAC-SHA256，恒定时间比较）
-  IdempotencyStore.java     # 幂等去重（事件 ID 级）
-  WebhookProcessor.java     # 被测"商户逻辑"简化版（事件路由 + 状态机 + 乱序防护）
-  Reconciler.java           # 对账：平台账单 vs 本地订单
-  ScenarioResult.java       # 场景结果模型
-  ReportWriter.java         # Markdown / JSON 报告生成
-  gateway/MockGateway.java  # 内置模拟支付网关（Stripe 风格）
+  ApiClient.java            # HTTP client (Java 17 HttpClient)
+  WebhookSigner.java        # event signing / verification (HMAC-SHA256, constant-time)
+  IdempotencyStore.java     # event-level idempotency
+  WebhookProcessor.java     # simplified merchant logic: routing, state machine, out-of-order guard
+  Reconciler.java           # reconciliation: platform statement vs local orders
+  ScenarioResult.java       # scenario result model
+  ReportWriter.java         # Markdown / JSON report generation
+  gateway/MockGateway.java  # built-in mock PSP (Stripe-style)
 src/test/java/io/pqa/framework/
-  AbstractPaymentQaTest.java  # 网关生命周期（随机端口，共享实例）
+  AbstractPaymentQaTest.java  # gateway lifecycle (random port, shared instance)
   A_PaymentFlowTests.java ... H_RefundDunningTests.java
-  ReportGenerationTest.java   # 报告生成示例
+  ReportGenerationTest.java   # report generation sample
 ```
 
-## 设计原则
+## Design principles
 
-- **干净实现（clean-room）**：本仓库全部代码为独立编写，不包含任何公司或商业项目代码、数据或配置；场景与实现基于公开平台文档（Stripe 官方文档）、开源 issue 调研与行业通用实践整理
-- **本地可跑**：不依赖真实支付账号，模拟网关 + 测试卡全内置
-- **单向依赖**：测试 → 框架 → 网关，接真实平台时只换 `ApiClient` 实现，测试逻辑不动
-- **报告即交付**：测试输出 Markdown / JSON 报告，直接作为"支付体检"交付物
+- **Clean-room**: all code independently written; no company or commercial project code, data, or configuration. Scenarios are based on public platform documentation (Stripe docs), open-source issue research, and industry common practice
+- **Runs anywhere**: no real payment accounts required — mock gateway + test cards built in
+- **One-way dependency**: tests → framework → gateway. To wire a real platform, replace `ApiClient` only; the test logic stays
+- **Report as deliverable**: Markdown / JSON output that can be handed to customers directly
 
-## AI 路线图（v2，不阻塞当前版本）
+## AI roadmap (v2, non-blocking)
 
-- AI 报告分析：读 JSON 报告，输出风险排序 + 修复建议
-- AI 失败归因：结合请求 / 响应 / 耗时快照，给出根因假设
-- AI 生成测试数据：从 schema 生成边界 payload（智能 fuzz），复用 `ApiClient`
-- case 元数据化：场景注册表驱动，AI 可从 changelog / issue 起草新场景
-- 对话式执行：自然语言触发"跑一下 Webhook 组"
+- AI report analysis: read the JSON report, rank risks, suggest fixes
+- AI failure attribution: use request/response/timing snapshots to hypothesize root causes
+- AI test-data generation: schema-driven boundary payloads (smart fuzzing), reusing `ApiClient`
+- Scenario-as-data: registry-driven cases; AI can draft new scenarios from changelogs / issues
+- Conversational execution: natural-language triggers like "run the webhook group"
 
-框架当前已经为这些留好接口：`ScenarioResult` 支持 JSON 导出，`MockGateway` 支持故障注入，测试与网关解耦。
+The framework already keeps interfaces ready for these: `ScenarioResult` exports JSON, `MockGateway` supports fault injection, and tests are decoupled from the gateway.
 
 ## License
 
-[MIT](LICENSE) © 2026 pqa-labs（如需改为真实姓名，改 LICENSE 首行即可）
+[MIT](LICENSE) © 2026 pqa-labs
 
-## 关于作者
+## About the author
 
-做过多年跨境支付软件开发自动化测试，目前专注出海产品支付验证：支付流程测试、掉单排查、对账兜底。
+Automation testing engineer focused on cross-border payment verification: payment flow testing, dropped-order troubleshooting, reconciliation.
 
-更多内容见掘金专栏《跨境支付》：字段漂移、重复入账、回调丢失、签名验证——真实 issue 案例 + 自查清单。
+More content (in Chinese) in the Juejin column "跨境支付": field drift, duplicate processing, lost callbacks, signature verification — real issue cases + checklists.
 
-联系方式：【GitHub / 邮箱】
+Contact: [GitHub](https://github.com/pqa-labs) / email: ____

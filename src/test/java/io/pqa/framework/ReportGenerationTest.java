@@ -13,9 +13,9 @@ class ReportGenerationTest extends AbstractPaymentQaTest {
     @Test
     void generatesReportArtifacts() throws Exception {
         List<ScenarioResult> results = List.of(
-                new ScenarioResult("A1", "首次支付成功", true, "charge=succeeded", 12),
-                new ScenarioResult("D16", "Webhook 幂等", true, "fulfillments=1", 8),
-                new ScenarioResult("E4", "超额捕获拒绝", true, "400 capture_exceeds_authorization", 15));
+                new ScenarioResult("A1", "First payment success", true, "charge=succeeded", 12),
+                new ScenarioResult("D16", "Webhook idempotency", true, "fulfillments=1", 8),
+                new ScenarioResult("E4", "Capture over authorization", true, "400 capture_exceeds_authorization", 15));
 
         Path markdown = Path.of("target", "payment-qa-report.md");
         Path json = Path.of("target", "payment-qa-report.json");
@@ -24,7 +24,7 @@ class ReportGenerationTest extends AbstractPaymentQaTest {
 
         String content = Files.readString(markdown);
         assertTrue(content.contains("PASS"));
-        assertTrue(content.contains("场景总数：3"));
+        assertTrue(content.contains("Total scenarios: 3"));
         assertTrue(Files.exists(json));
     }
 }
