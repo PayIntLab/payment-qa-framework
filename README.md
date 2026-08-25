@@ -79,6 +79,6 @@ The framework already keeps interfaces ready for these: `ScenarioResult` exports
 
 Automation testing engineer focused on cross-border payment verification: payment flow testing, dropped-order troubleshooting, reconciliation.
 
-More content (in Chinese) in the Juejin column "跨境支付": field drift, duplicate processing, lost callbacks, signature verification — real issue cases + checklists.
+More content in my Juejin column on cross-border payment pitfalls: field drift, duplicate processing, lost callbacks, signature verification — real issue cases and checklists.
 
 Contact: [GitHub](https://github.com/pqa-labs) / email: ____
