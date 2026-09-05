@@ -92,4 +92,4 @@ Automation testing engineer focused on cross-border payment verification: paymen
 
 More content in my Juejin column on cross-border payment pitfalls: field drift, duplicate processing, lost callbacks, signature verification — real issue cases and checklists.
 
-Contact: [GitHub](https://github.com/pqa-labs) / email: ____
+Contact: [GitHub](https://github.com/pqa-labs) / email: pqa.labs@outlook.com
