@@ -3,7 +3,7 @@
 > Payment QA automation framework for cross-border / overseas products.
 > Turns a 42-scenario payment test checklist into runnable automation.
 
-![CI](https://github.com/pqa-labs/payment-qa-framework/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/PayIntLab/payment-qa-framework/actions/workflows/ci.yml/badge.svg)
 
 ## What is this?
 
@@ -84,12 +84,12 @@ None of the above packages the payment QA checklist (main flows / failure & retr
 
 ## License
 
-[MIT](LICENSE) © 2026 pqa-labs
+[MIT](LICENSE) © 2026 PayIntLab
 
 ## About the author
 
-Automation testing engineer focused on cross-border payment verification: payment flow testing, dropped-order troubleshooting, reconciliation.
+Engineer with a development and testing background in cross-border payments: payment integration, automation frameworks, payment flow testing, dropped-order troubleshooting, reconciliation.
 
 More content in my Juejin column on cross-border payment pitfalls: field drift, duplicate processing, lost callbacks, signature verification — real issue cases and checklists.
 
-Contact: [GitHub](https://github.com/pqa-labs) / email: pqa.labs@outlook.com
+Contact: [GitHub](https://github.com/PayIntLab) / email: pqa.labs@outlook.com
